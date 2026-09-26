@@ -1,254 +1,141 @@
 {
-  "name": "InternOrbit - Tech Internship Radar",
+  "name": "InternOrbit",
   "nodes": [
     {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "hours",
-              "hoursInterval": 4
-            }
-          ]
-        }
-      },
-      "id": "schedule-trigger-1",
-      "name": "Every 4 Hours Schedule",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
       "position": [
-        220,
-        300
-      ]
+        0,
+        0
+      ],
+      "id": "10b61c6d-cee7-4564-8e24-bce83472aca9",
+      "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
         "url": "https://remoteok.com/api?tag=internship",
         "options": {}
       },
-      "id": "http-fetch-remoteok",
-      "name": "Fetch RemoteOK Internships",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.5,
       "position": [
-        460,
-        200
-      ]
+        272,
+        0
+      ],
+      "id": "08696ca8-395d-4cc8-bcde-9e824c4d39ff",
+      "name": "HTTP Request"
     },
     {
       "parameters": {
-        "url": "https://www.arbeitnow.com/api/v1/jobs",
-        "options": {}
+        "jsCode": "const items = $input.all();\n\n// 1. የቴክ እና የሶፍትዌር ቁልፍ ቃላት\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech'\n];\n\n// 2. መወገድ ያለባቸው ከቴክ ውጭ የሆኑ ስራዎች (Exclude non-tech)\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist'\n];\n\nconst techInternships = items.filter(item => {\n  const json = item.json;\n  if (!json.position) return false;\n  \n  const title = (json.position || '').toLowerCase();\n  const tags = (json.tags || []).map(t => String(t).toLowerCase());\n  const allText = title + ' ' + tags.join(' ');\n\n  // ከቴክ ውጭ ከሆኑ ማለፍ (Skip)\n  const isExcluded = excludeKeywords.some(ex => title.includes(ex));\n  if (isExcluded) return false;\n\n  // ቴክ መሆኑን ማረጋገጥ\n  const isTech = techKeywords.some(kw => allText.includes(kw));\n\n  // ኢንተርንሺፕ ወይም ጀማሪ መሆኑን ማረጋገጥ\n  const isInternship = title.includes('intern') || \n                       tags.includes('internship') || \n                       tags.includes('intern') ||\n                       title.includes('junior') ||\n                       title.includes('trainee');\n\n  return isTech && isInternship;\n});\n\n// የተገኙትን ንፁህ የቴክ ስራዎች መውሰድ (እስከ 3 ስራዎች)\nreturn techInternships.slice(0, 3);\n"
       },
-      "id": "http-fetch-arbeitnow",
-      "name": "Fetch Global Tech Jobs",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        460,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Normalizing and filtering potential tech internship items\nconst items = [];\n\n// Handle input data from previous nodes\nfor (const item of $input.all()) {\n  const data = item.json;\n  \n  // If array (e.g. RemoteOK)\n  if (Array.isArray(data)) {\n    for (const job of data.slice(1, 15)) { // skip metadata index 0\n      if (job.position && (job.position.toLowerCase().includes('intern') || (job.tags && job.tags.includes('internship')))) {\n        items.push({\n          json: {\n            raw_id: job.id || job.url,\n            title: job.position,\n            company: job.company,\n            location: job.location || 'Remote',\n            url: job.url || job.apply_url,\n            description: (job.description || '').slice(0, 1500),\n            source: 'RemoteOK'\n          }\n        });\n      }\n    }\n  } else if (data.data && Array.isArray(data.data)) {\n    // If wrapped in data array (e.g. Arbeitnow)\n    for (const job of data.data.slice(0, 15)) {\n      if (job.title && job.title.toLowerCase().includes('intern')) {\n        items.push({\n          json: {\n            raw_id: job.slug || job.url,\n            title: job.title,\n            company: job.company_name,\n            location: job.location || (job.remote ? 'Remote' : 'On-site'),\n            url: job.url,\n            description: (job.description || '').slice(0, 1500),\n            source: 'Arbeitnow'\n          }\n        });\n      }\n    }\n  }\n}\n\n// Return normalized items\nreturn items.length > 0 ? items : [];"
-      },
-      "id": "code-normalizer",
-      "name": "Clean & Normalize Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        700,
-        300
-      ]
+        560,
+        0
+      ],
+      "id": "0a01c2b8-906c-4262-8fa0-a2b7e35e655c",
+      "name": "Code in JavaScript"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are an AI career assistant analyzing internship opportunities for a software engineering student.\nAnalyze this job opportunity and extract structured data:\n\nJob Title: {{ $json.title }}\nCompany: {{ $json.company }}\nLocation: {{ $json.location }}\nURL: {{ $json.url }}\nDescription: {{ $json.description }}\n\nReturn strict JSON format with these exact fields:\n{\n  \"is_tech\": boolean (true if software/web/mobile/data/ai/cloud/devops/IT related, false otherwise),\n  \"is_internship\": boolean (true if internship/fellowship/trainee),\n  \"company_name\": string,\n  \"country\": string (company country or specify Remote Worldwide),\n  \"work_type\": string (Remote, On-site, or Hybrid),\n  \"compensation\": string (e.g. \"Paid\", \"Unpaid\", \"Competitive stipend\", or \"Not specified\"),\n  \"key_tech_stack\": list of strings,\n  \"brief_summary\": string (2-3 punchy bullet points describing what the intern will do),\n  \"apply_link\": string\n}\nOutput ONLY valid JSON."
+        "text": "=SYSTEM ROLE: You are an expert AI career assistant and technical recruiter specializing in software engineering student internships. Your goal is to analyze raw internship descriptions with high precision and extract structured data accurately.\n\nCONTEXT AND GROUNDING: You will process raw internship text provided via API integration. Leverage your massive context window and rapid synthesis capabilities to thoroughly parse the provided text, extract core details, and strip away any HTML tags.\n\nCHAIN OF THOUGHT ANALYSIS: Before generating the final summary, perform these internal reasoning steps:\n1. Scan the raw description for explicit mentions of company name, exact job title, and physical or remote location.\n2. Analyze the main responsibilities to synthesize a concise, high-value 3-bullet-point summary of the role, technical duties, and learning outcomes for a software student.\n3. Determine the work type by evaluating mentions of remote, hybrid, or on-site policies.\n4. Search for compensation markers such as hourly rates, salary figures, stipends, or unpaid status. If not found, output 'Not Specified'.\n5. Extract all programming languages, frameworks, cloud platforms, and developer tools mentioned in the text to build the key tech stack list.\n6. Verify all extracted fields against the raw text to ensure zero hallucinations before finalizing your output.\n\nDIRECTIVES:\n- Be objective, accurate, and concise.\n- If a specific field like compensation or tech stack is missing from the raw text, explicitly state 'Not Specified'.\n- Ensure the summary bullets focus specifically on student learning potential and day-to-day engineering tasks.\n- Format the output using clean Telegram Markdown format so it looks great on mobile.\n\nOUTPUT FORMAT SPECIFICATION:\n🚀 *New Tech Internship Detected!*\n\n🏢 *Company:* [Company Name]\n💼 *Position:* [Exact Job Title]\n🌍 *Location & Mode:* [Location] ([Remote / On-site / Hybrid])\n💰 *Compensation:* [Pay details, stipend, or Not Specified]\n💻 *Key Tech Stack:* [Comma-separated technologies]\n\n📝 *Description & Learning Scope:*\n• [First detailed bullet point about the internship scope]\n• [Second detailed bullet point about technical duties]\n• [Third detailed bullet point about deliverables or learning outcomes]\n\n🔗 [👉 Click Here to Apply]([Direct Application Link])\n\n---\nINPUT DATA TO ANALYZE:\n- Raw Company: {{ $json.company }}\n- Raw Position: {{ $json.position }}\n- Raw Location: {{ $json.location }}\n- Raw Apply Link: {{ $json.apply_url || $json.url }}\n- Raw Description:\n{{ $json.description }}\n"
       },
-      "id": "ai-agent-parser",
-      "name": "AI Internship Analyzer",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.4,
+      "typeVersion": 1.9,
       "position": [
-        940,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-1.5-flash",
-        "options": {
-          "temperature": 0.2
-        }
-      },
-      "id": "google-gemini-model",
-      "name": "Google Gemini Model",
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        940,
-        500
+        784,
+        0
       ],
-      "credentials": {
-        "googlePalmApi": {
-          "id": "GEMINI_API_KEY_PLACEHOLDER",
-          "name": "Google Gemini API Key"
-        }
-      }
+      "id": "cee73236-6a09-4ee7-927a-794626bcf55c",
+      "name": "Basic LLM Chain"
     },
     {
       "parameters": {
-        "jsCode": "try {\n  const responseText = $json.text || $json.response?.text || JSON.stringify($json);\n  // Extract JSON from markdown code block if present\n  const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();\n  const parsed = JSON.parse(cleanJson);\n  return [{ json: parsed }];\n} catch (e) {\n  return [{ json: { error: e.message, raw: $json.text } }];\n}"
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
       },
-      "id": "json-extractor",
-      "name": "Parse AI Output",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
       "position": [
-        1180,
-        300
-      ]
+        832,
+        256
+      ],
+      "id": "cfb2199f-25ff-4686-9b3c-6be9cf92117f",
+      "name": "Google Gemini Chat Model"
     },
     {
       "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.is_tech }}",
-              "value2": true
-            },
-            {
-              "value1": "={{ $json.is_internship }}",
-              "value2": true
-            }
-          ]
-        }
-      },
-      "id": "filter-tech-internships",
-      "name": "Filter Relevant Internships",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        1400,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "chatId": "YOUR_TELEGRAM_CHAT_ID",
-        "text": "=🚀 *New Tech Internship Detected!* [InternOrbit]\n\n🏢 *Company:* {{ $json.company_name }}\n🌍 *Location:* {{ $json.country }} ({{ $json.work_type }})\n💰 *Compensation:* {{ $json.compensation }}\n💻 *Tech Stack:* {{ $json.key_tech_stack.join(', ') }}\n\n📝 *Summary:*\n{{ $json.brief_summary }}\n\n🔗 [Apply Directly Here]({{ $json.apply_link }})",
+        "chatId": "7220676785",
+        "text": "={{ $json.text }}",
         "additionalFields": {
-          "parse_mode": "Markdown",
-          "reply_markup": "inline_keyboard"
+          "parse_mode": "Markdown"
         }
       },
-      "id": "telegram-notify",
-      "name": "Send Telegram Notification",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1640,
-        280
+        1120,
+        0
       ],
-      "credentials": {
-        "telegramApi": {
-          "id": "TELEGRAM_BOT_TOKEN_PLACEHOLDER",
-          "name": "Telegram Bot Account"
-        }
-      }
+      "id": "98ec951c-56bd-4f79-b131-44bc61f57583",
+      "name": "Send a text message"
     }
   ],
   "connections": {
-    "Every 4 Hours Schedule": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "Fetch RemoteOK Internships",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch Global Tech Jobs",
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch RemoteOK Internships": {
+    "HTTP Request": {
       "main": [
         [
           {
-            "node": "Clean & Normalize Data",
+            "node": "Code in JavaScript",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch Global Tech Jobs": {
+    "Code in JavaScript": {
       "main": [
         [
           {
-            "node": "Clean & Normalize Data",
+            "node": "Basic LLM Chain",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Clean & Normalize Data": {
+    "Basic LLM Chain": {
       "main": [
         [
           {
-            "node": "AI Internship Analyzer",
+            "node": "Send a text message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Model": {
+    "Google Gemini Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Internship Analyzer",
+            "node": "Basic LLM Chain",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Internship Analyzer": {
-      "main": [
-        [
-          {
-            "node": "Parse AI Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse AI Output": {
-      "main": [
-        [
-          {
-            "node": "Filter Relevant Internships",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Relevant Internships": {
-      "main": [
-        [
-          {
-            "node": "Send Telegram Notification",
-            "type": "main",
             "index": 0
           }
         ]
