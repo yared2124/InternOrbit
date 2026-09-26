@@ -1,0 +1,17 @@
+# Environment variables & secrets
+.env
+*.local
+
+# n8n data directory
+n8n_data/
+.n8n/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db
