@@ -1,13 +1,13 @@
 {
-  "name": "InternOrbit - Student Tech Internship Radar",
+  "name": "InternOrbit - Student Tech Internship Radar & Subscriber Bot",
   "nodes": [
     {
       "parameters": {},
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -220,
-        180
+        -240,
+        140
       ],
       "id": "10b61c6d-cee7-4564-8e24-bce83472aca9",
       "name": "When clicking ‘Execute workflow’"
@@ -35,7 +35,7 @@
       "typeVersion": 4.5,
       "position": [
         160,
-        100
+        80
       ],
       "id": "jobicy-fetch-node",
       "name": "Fetch Jobicy Global Internships"
@@ -55,7 +55,7 @@
       "typeVersion": 4.5,
       "position": [
         160,
-        260
+        220
       ],
       "id": "ethiopia-afriwork-node",
       "name": "Fetch Telegram - Afriwork (ET)"
@@ -75,20 +75,20 @@
       "typeVersion": 4.5,
       "position": [
         160,
-        420
+        360
       ],
       "id": "ethiopia-getjobs-node",
       "name": "Fetch Telegram - GetJobs (ET)"
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech',\n  'ሶፍትዌር', 'ዴቨሎፐር', 'ኮምፒውተር', 'አይቲ', 'ዌብሳይት', 'ኢንፎርሜሽን ቴክኖሎጂ'\n];\n\n// STRICT EXCLUSIONS: Exclude non-tech, seniors, and graduate-only roles\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist', 'driver', 'ፎርማን', 'ሹፌር', 'ሂሳብ ሹም',\n  'senior', 'lead', 'principal', 'manager', 'director', 'phd', 'graduate program', 'experienced'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // 1. Jobicy Global API\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 800),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK API\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 800),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n  // 3. Ethiopian Telegram Channel Previews\n  else if (json.data && typeof json.data === 'string' && json.data.includes('tgme_widget_message_text')) {\n    const html = json.data;\n    const regex = /<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n    let match;\n    while ((match = regex.exec(html)) !== null) {\n      const raw = match[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n      if (raw.length > 40) {\n        normalizedJobs.push({\n          title: raw.slice(0, 60),\n          company: 'Ethiopian Employer',\n          location: 'Ethiopia (Addis Ababa)',\n          url: 'https://t.me/afriworkamharic',\n          description: raw.slice(0, 800),\n          pubDate: 'Recently posted',\n          salary: 'See description (ETB)',\n          source: 'Ethiopia Telegram'\n        });\n      }\n    }\n  }\n}\n\n// STRICT STUDENT INTERNSHIP FILTER\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ') + ' ' + desc;\n\n  // Drop excluded roles\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n\n  // Must be tech\n  const isTech = techKeywords.some(kw => allText.includes(kw.toLowerCase()));\n\n  // Must be specifically for students / interns / trainees (NO GRADUATES/SENIORS)\n  const isStudentIntern = title.includes('intern') || \n                          title.includes('student') || \n                          title.includes('trainee') || \n                          desc.includes('internship') ||\n                          desc.includes('student') ||\n                          desc.includes('ተማሪ') ||\n                          desc.includes('ኢንተርን') ||\n                          (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && isStudentIntern;\n});\n\n// Take top 3 clean jobs\nreturn filtered.slice(0, 3).map(j => ({ json: j }));\n"
+        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech',\n  'ሶፍትዌር', 'ዴቨሎፐር', 'ኮምፒውተር', 'አይቲ', 'ዌብሳይት', 'ኢንፎርሜሽን ቴክኖሎጂ'\n];\n\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist', 'driver', 'ፎርማን', 'ሹፌር', 'ሂሳብ ሹም',\n  'senior', 'lead', 'principal', 'manager', 'director', 'phd', 'graduate program', 'experienced'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // 1. Jobicy Global API\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 800),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK API\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 800),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n  // 3. Ethiopian Telegram Channels\n  else if (json.data && typeof json.data === 'string' && json.data.includes('tgme_widget_message_text')) {\n    const html = json.data;\n    const regex = /<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n    let match;\n    while ((match = regex.exec(html)) !== null) {\n      const raw = match[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n      if (raw.length > 40) {\n        normalizedJobs.push({\n          title: raw.slice(0, 60),\n          company: 'Ethiopian Employer',\n          location: 'Ethiopia (Addis Ababa)',\n          url: 'https://t.me/afriworkamharic',\n          description: raw.slice(0, 800),\n          pubDate: 'Recently posted',\n          salary: 'See description (ETB)',\n          source: 'Ethiopia Telegram'\n        });\n      }\n    }\n  }\n}\n\n// STRICT STUDENT INTERNSHIP FILTER\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ') + ' ' + desc;\n\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n  const isTech = techKeywords.some(kw => allText.includes(kw.toLowerCase()));\n  const isStudentIntern = title.includes('intern') || \n                          title.includes('student') || \n                          title.includes('trainee') || \n                          desc.includes('internship') ||\n                          desc.includes('student') ||\n                          desc.includes('ተማሪ') ||\n                          desc.includes('ኢንተርን') ||\n                          (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && isStudentIntern;\n});\n\nreturn filtered.slice(0, 3).map(j => ({ json: j }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         540,
-        180
+        140
       ],
       "id": "0a01c2b8-906c-4262-8fa0-a2b7e35e655c",
       "name": "Strict Student Internships Filter"
@@ -96,14 +96,14 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=SYSTEM ROLE: You are an expert AI technical recruiter specializing strictly in SOFTWARE ENGINEERING STUDENT INTERNSHIPS.\n\nCRITICAL CONSTRAINTS:\n1. NO EMOJIS: Do NOT output any emojis whatsoever (no rockets, no buildings, no icons). Use only clean plain text and standard hyphens.\n2. CONCISE & TIGHT: Keep the description very short and clear (maximum 2 compact bullet points). Students want to quickly scan and apply on the source website.\n3. STRICTLY STUDENT INTERNSHIPS: This is exclusively for currently enrolled university/college students or trainees. Discard or reject senior or post-graduate positions.\n\nOUTPUT FORMAT (STRICT PLAIN TEXT, NO EMOJIS):\nNEW STUDENT INTERNSHIP: [Job Title]\n\nCompany: [Company Name]\nLocation: [Location] ([Remote / On-site / Hybrid])\nCompensation: [Pay details or Not Specified]\nDeadline: [Deadline date or Apply ASAP]\nKey Tech Stack: [Comma-separated technologies]\nSource: {{ $json.source }}\n\nSummary:\n- [First punchy bullet point on core intern scope]\n- [Second punchy bullet point on key learning outcome]\n\nApply: [Click Here to View & Apply]({{ $json.url }})\n\n---\nRAW JOB DATA:\n- Title: {{ $json.title }}\n- Company: {{ $json.company }}\n- Location: {{ $json.location }}\n- Date: {{ $json.pubDate }}\n- Salary: {{ $json.salary }}\n- Description: {{ $json.description }}\n",
+        "text": "=SYSTEM ROLE: You are an expert AI technical recruiter specializing strictly in SOFTWARE ENGINEERING STUDENT INTERNSHIPS.\n\nCRITICAL CONSTRAINTS:\n1. NO EMOJIS: Do NOT output any emojis whatsoever (no icons, no symbols). Use only clean plain text and standard hyphens.\n2. CONCISE & TIGHT: Keep the description very short and clear (maximum 2 compact bullet points). Students want to quickly scan and apply on the source website.\n3. STRICTLY STUDENT INTERNSHIPS: This is exclusively for currently enrolled university/college students or trainees. Discard senior or post-graduate positions.\n\nOUTPUT FORMAT (STRICT PLAIN TEXT, NO EMOJIS):\nNEW STUDENT INTERNSHIP: [Job Title]\n\nCompany: [Company Name]\nLocation: [Location] ([Remote / On-site / Hybrid])\nCompensation: [Pay details or Not Specified]\nDeadline: [Deadline date or Apply ASAP]\nKey Tech Stack: [Comma-separated technologies]\nSource: {{ $json.source }}\n\nSummary:\n- [First punchy bullet point on core intern scope]\n- [Second punchy bullet point on key learning outcome]\n\nApply: [Click Here to View & Apply]({{ $json.url }})\n\n---\nRAW JOB DATA:\n- Title: {{ $json.title }}\n- Company: {{ $json.company }}\n- Location: {{ $json.location }}\n- Date: {{ $json.pubDate }}\n- Salary: {{ $json.salary }}\n- Description: {{ $json.description }}\n",
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
         820,
-        180
+        140
       ],
       "id": "cee73236-6a09-4ee7-927a-794626bcf55c",
       "name": "Basic LLM Chain"
@@ -117,10 +117,80 @@
       "typeVersion": 1.1,
       "position": [
         860,
-        400
+        340
       ],
       "id": "cfb2199f-25ff-4686-9b3c-6be9cf92117f",
       "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID_HERE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Subscribers",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Chat ID": "={{ $json.message.chat.id }}",
+            "First Name": "={{ $json.message.chat.first_name }}",
+            "Username": "={{ $json.message.chat.username || 'N/A' }}",
+            "Date Joined": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [
+            "Chat ID"
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        420,
+        600
+      ],
+      "id": "sheets-save-subscriber",
+      "name": "Save Student Subscriber"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        600
+      ],
+      "id": "telegram-start-trigger",
+      "name": "When Student Types /start",
+      "webhookId": "internorbit-student-start"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "=Welcome to InternOrbit, {{ $json.message.chat.first_name }}!\n\nYou are now subscribed to automated Tech & Software Engineering student internship alerts.\n\nYou will receive newly detected internships from Ethiopia and Global remote sources directly in this chat as soon as they are published.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        600
+      ],
+      "id": "telegram-send-welcome",
+      "name": "Send Welcome Message"
     },
     {
       "parameters": {
@@ -134,7 +204,7 @@
       "typeVersion": 1.2,
       "position": [
         1100,
-        180
+        140
       ],
       "id": "98ec951c-56bd-4f79-b131-44bc61f57583",
       "name": "Send Telegram Alert"
@@ -238,6 +308,28 @@
         [
           {
             "node": "Send Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Student Types /start": {
+      "main": [
+        [
+          {
+            "node": "Save Student Subscriber",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Student Subscriber": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Message",
             "type": "main",
             "index": 0
           }
