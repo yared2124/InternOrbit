@@ -1,60 +1,67 @@
 # InternOrbit 🛰️
-> **Automated AI-Powered Tech Internship Radar for Software Engineering Students**
+> **Automated Multi-Source AI Tech Internship Radar for Software Engineering Students**
 
-InternOrbit is an intelligent automation system built with **n8n** and **Generative AI** that aggregates, filters, parses, and sends notifications for tech internships in Ethiopia and worldwide (Remote/On-site) straight to your Telegram.
-
----
-
-## 🎯 Key Features
-- 🔍 **Multi-Source Ingestion**: Monitors Ethiopian job portals/Telegram channels and global remote job boards.
-- 🤖 **AI-Powered Evaluation**: Analyzes job descriptions using LLMs (Google Gemini 1.5/2.0 Flash or OpenAI) to extract:
-  - Company Name & Country
-  - Work Mode (Remote / On-site / Hybrid)
-  - Compensation (Paid vs Unpaid stipend details)
-  - Key Tech Stack (e.g., React, Python, Flutter, Go, etc.)
-  - Direct Application Link
-- 🎯 **Targeted Filtering**: Filters out non-tech and senior roles; focuses strictly on internships, apprenticeships, and junior roles.
-- 📲 **Instant Telegram Alerts**: Delivers rich markdown alerts with direct 1-click apply links.
-- 🔄 **Deduplication**: Ensures you never receive duplicate notifications for the same job.
+InternOrbit is an intelligent, production-grade automation agent built with **n8n** and **Generative AI (Google Gemini 3.1 Flash-Lite)**. It aggregates, filters, standardizes, and notifies students about tech internships from multiple global and local sources with deadline tracking, tech stack matching, and 1-click apply links.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🎯 Key Production Features
+- 🌐 **Multi-Source Aggregation**: Fetches opportunities simultaneously from:
+  - **RemoteOK API**: Global remote software and tech roles.
+  - **Jobicy Global Tech API**: Worldwide remote internships, junior engineers, and apprenticeships.
+  - **Ethiopian Tech Telegram Channels**: Curated domestic opportunities (HaHuJobs, Shega, TechJobs).
+- 🧹 **Unified Data Normalizer**: Merges heterogeneous sources into a clean schema (`title`, `company`, `location`, `pubDate`, `salary`, `source`, `url`, `description`).
+- 🤖 **AI Precision Extraction (Gemini 3.1 Flash-Lite)**:
+  - Strict tech relevance validation (filters out HR, sales, nursing, and non-engineering roles).
+  - ⏳ **Deadline / Urgency Detection** (identifies application cutoff dates or marks "Apply ASAP").
+  - 💻 **Key Tech Stack Extraction** (languages, frameworks, libraries, tools).
+  - 📝 **Structured 3-Bullet Summary** focusing on student learning outcomes and daily deliverables.
+- 📲 **Telegram Production Alerts**: Delivers rich markdown alerts directly to your private chat or a public student **Telegram Channel/Group**.
+
+---
+
+## 🏗️ Architecture Pipeline
 
 ```mermaid
 graph TD
-    A[Schedule Trigger / Cron] --> B[Data Ingestion Nodes]
-    B -->|Ethiopian Channels & RSS| C[Clean & Deduplicate]
-    B -->|Global Remote APIs / RSS| C
-    C --> D[AI Agent / LLM Chain]
-    D -->|Extracts Company, Country, Paid/Remote, Tech Stack| E[Filter: Is Tech & Internship?]
-    E -->|True| F[Database / Memory Check]
-    F -->|New Opportunity| G[Telegram Bot Notification]
-    F -->|Already Seen| H[Skip]
+    Trigger["⚡ Schedule / Manual Trigger"] --> S1["🌍 RemoteOK API"]
+    Trigger --> S2["🌐 Jobicy Global Tech API"]
+    Trigger --> S3["🇪🇹 Ethiopian Channels & Feeds"]
+    
+    S1 --> Normalizer["🧹 Normalize & Filter Tech Internships (Code)"]
+    S2 --> Normalizer
+    S3 --> Normalizer
+    
+    Normalizer --> LLM["🧠 Basic LLM Chain (Gemini 3.1 Flash-Lite)"]
+    LLM --> Telegram["📲 Telegram Bot (Channel or Direct Alert)"]
 ```
 
 ---
 
-## 🚀 Quick Start (Local n8n Setup)
+## 🚀 How to Run in n8n Cloud / Self-Hosted
 
-### 1. Start n8n with Docker Compose
-Run the following command in this directory:
-```bash
-docker compose up -d
-```
-Then open your browser and navigate to:
-```
-http://localhost:5678
-```
+1. **Import the Workflow**:
+   - Open your n8n instance (e.g. `your-instance.app.n8n.cloud`).
+   - Go to **Workflows** -> **Import from File...** -> choose [`internorbit_n8n_workflow.json`](./internorbit_n8n_workflow.json).
 
-### 2. Import the Workflow
-1. In n8n, click **Workflows** -> **Import from File...**
-2. Select [`internorbit_n8n_workflow.json`](./internorbit_n8n_workflow.json).
+2. **Credentials Setup**:
+   - **Google Gemini API**: Connect your free Google AI Studio key (`models/gemini-3.1-flash-lite`).
+   - **Telegram API**: Connect your Bot Token from [@BotFather](https://t.me/BotFather).
 
-### 3. Configure Credentials
-1. **Telegram API**:
-   - Talk to [@BotFather](https://t.me/BotFather) on Telegram to create a bot and get your `Bot Token`.
-   - Talk to [@userinfobot](https://t.me/userinfobot) to get your personal `Chat ID`.
-2. **Google Gemini API Key**:
-   - Grab a free key from [Google AI Studio](https://aistudio.google.com/).
-   - Add it under n8n Credentials -> **Google PaLM/Gemini API**.
+3. **Deploying for Friends & Students (Channel Setup)**:
+   - Create a Telegram Channel (e.g., `@InternOrbit_Jobs`).
+   - Add your bot as an **Administrator** with permission to post messages.
+   - In the Telegram node, set the `Chat ID` to `@your_channel_username` (or keep your private Chat ID).
+   - Toggle **"Publish"** on the top right in n8n to enable 24/7 background autopilot!
+
+---
+
+## 📂 Project Structure
+```text
+InternOrbit/
+├── internorbit_n8n_workflow.json  # Production multi-source n8n workflow
+├── docker-compose.yml             # Local / Self-hosted n8n runner
+├── .env.example                   # Environment configuration template
+├── .gitignore                     # Security & secrets protection
+└── README.md                      # Complete system documentation
+```
