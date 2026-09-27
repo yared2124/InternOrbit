@@ -6,8 +6,8 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -160,
-        120
+        -200,
+        180
       ],
       "id": "10b61c6d-cee7-4564-8e24-bce83472aca9",
       "name": "When clicking ‘Execute workflow’"
@@ -21,7 +21,7 @@
       "typeVersion": 4.5,
       "position": [
         160,
-        0
+        -60
       ],
       "id": "08696ca8-395d-4cc8-bcde-9e824c4d39ff",
       "name": "Fetch RemoteOK Internships"
@@ -35,20 +35,60 @@
       "typeVersion": 4.5,
       "position": [
         160,
-        240
+        100
       ],
       "id": "jobicy-fetch-node",
       "name": "Fetch Jobicy Global Internships"
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech'\n];\n\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // 1. Jobicy format\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 1500),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK format\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 1500),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n}\n\n// Filter for Tech & Internship\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ');\n\n  // Exclude non-tech\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n\n  // Must match tech\n  const isTech = techKeywords.some(kw => allText.includes(kw) || desc.includes(kw));\n\n  // Must be internship / junior\n  const isIntern = title.includes('intern') || \n                   title.includes('junior') || \n                   title.includes('trainee') ||\n                   desc.includes('intern') ||\n                   (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && isIntern;\n});\n\n// Pass normalized top jobs to AI\nreturn filtered.slice(0, 3).map(j => ({ json: j }));\n"
+        "url": "https://t.me/s/afriworkamharic",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        160,
+        260
+      ],
+      "id": "ethiopia-afriwork-node",
+      "name": "Fetch Telegram - Afriwork (ET)"
+    },
+    {
+      "parameters": {
+        "url": "https://t.me/s/getjobss",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        160,
+        420
+      ],
+      "id": "ethiopia-getjobs-node",
+      "name": "Fetch Telegram - GetJobs (ET)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech',\n  'ሶፍትዌር', 'ዴቨሎፐር', 'ኮምፒውተር', 'አይቲ', 'ዌብሳይት', 'ኢንፎርሜሽን ቴክኖሎጂ'\n];\n\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist', 'driver', 'ፎርማን', 'ሹፌር', 'ሂሳብ ሹም'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // 1. Jobicy Global API\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 1500),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK API\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 1500),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n  // 3. Ethiopian Telegram Public Web Channel Preview\n  else if (json.data && typeof json.data === 'string' && json.data.includes('tgme_widget_message_text')) {\n    const html = json.data;\n    const regex = /<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n    let match;\n    while ((match = regex.exec(html)) !== null) {\n      const raw = match[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n      if (raw.length > 40) {\n        normalizedJobs.push({\n          title: raw.slice(0, 60),\n          company: 'Ethiopian Organization',\n          location: 'Ethiopia (Addis Ababa)',\n          url: 'https://t.me/afriworkamharic',\n          description: raw.slice(0, 1500),\n          pubDate: 'Recently posted on Telegram',\n          salary: 'See post details (ETB)',\n          source: 'Ethiopia Telegram Channel'\n        });\n      }\n    }\n  }\n}\n\n// Smart Tech & Internship Filter\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ') + ' ' + desc;\n\n  // Skip excluded non-tech roles\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n\n  // Must match software / tech keywords\n  const isTech = techKeywords.some(kw => allText.includes(kw.toLowerCase()));\n\n  // Check for internship / entry-level / junior\n  const isIntern = title.includes('intern') || \n                   title.includes('junior') || \n                   title.includes('trainee') ||\n                   desc.includes('intern') ||\n                   desc.includes('ጀማሪ') ||\n                   desc.includes('ተማሪ') ||\n                   (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && (isIntern || job.source.includes('Telegram'));\n});\n\n// Take top 3 for Gemini AI\nreturn filtered.slice(0, 3).map(j => ({ json: j }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        500,
-        120
+        540,
+        180
       ],
       "id": "0a01c2b8-906c-4262-8fa0-a2b7e35e655c",
       "name": "Normalize & Filter Tech Internships"
@@ -56,14 +96,14 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=SYSTEM ROLE: You are an expert AI career assistant and technical recruiter specializing in software engineering student internships. Your goal is to analyze raw internship descriptions with high precision and extract structured data accurately.\n\nCONTEXT AND GROUNDING: You are preparing student-friendly alerts for computer science and software engineering students looking for high-quality tech internships.\n\nCHAIN OF THOUGHT ANALYSIS:\n1. Confirm the exact role title and verify it is a software/tech internship.\n2. Extract the company name, location, and whether it is Remote, On-site, or Hybrid.\n3. Look for application deadlines, urgency, or posting date. If no strict deadline is mentioned, output 'Apply ASAP (Rolling Basis)'.\n4. Search for compensation/stipend details.\n5. Extract the key tech stack (programming languages, frameworks, developer tools).\n6. Synthesize a crystal-clear, high-value 3-bullet description detailing what the student will build, learn, and contribute to.\n\nOUTPUT FORMAT SPECIFICATION:\n🚀 *New Tech Internship Alert!* [InternOrbit]\n\n🏢 *Company:* [Company Name]\n💼 *Position:* [Exact Job Title]\n🌍 *Location:* [Location] ([Remote / On-site / Hybrid])\n💰 *Compensation:* [Compensation details or Not Specified]\n⏳ *Deadline / Urgency:* [Deadline date or Apply ASAP]\n💻 *Key Tech Stack:* [Comma-separated technologies]\n🌐 *Source:* {{ $json.source }}\n\n📝 *Description & Learning Scope:*\n• [Detailed bullet point on the project scope]\n• [Technical duties and daily development tasks]\n• [Deliverables, mentorship, and learning outcomes]\n\n🔗 [👉 Click Here to Apply]({{ $json.url }})\n\n---\nINPUT DATA TO ANALYZE:\n- Job Title: {{ $json.title }}\n- Company: {{ $json.company }}\n- Location: {{ $json.location }}\n- Posted Date: {{ $json.pubDate }}\n- Salary Data: {{ $json.salary }}\n- Raw Description:\n{{ $json.description }}\n",
+        "text": "=SYSTEM ROLE: You are an expert AI career assistant and technical recruiter specializing in software engineering student internships. Your goal is to analyze raw internship descriptions (in English or Amharic) with high precision and extract structured data accurately.\n\nCONTEXT AND GROUNDING: You process job postings from global APIs and Ethiopian Telegram channels. If the post is in Amharic (e.g. የስራ መደብ፣ ደሞዝ፣ የማመልከቻ ማብቂያ ቀን፣ የስራው ዝርዝር), translate the key points accurately into English.\n\nCHAIN OF THOUGHT ANALYSIS:\n1. Confirm the exact role title and verify it is a software/tech internship or entry-level role.\n2. Extract the company name, location (e.g. Addis Ababa, Ethiopia or Remote Worldwide), and work mode (Remote / On-site / Hybrid).\n3. Extract explicit application deadlines (e.g. October 11, 2026). If not mentioned, state 'Apply ASAP (Rolling Basis)'.\n4. Extract compensation/stipend (e.g. 15,000 ETB Monthly or USD/Hourly).\n5. Extract key tech stack or required computer skills.\n6. Formulate a 3-bullet description detailing project scope, development duties, and learning outcomes for a student.\n\nOUTPUT FORMAT SPECIFICATION:\n🚀 *New Tech Opportunity Detected!* [InternOrbit]\n\n🏢 *Company:* [Company Name]\n💼 *Position:* [Exact Job Title]\n🌍 *Location:* [Location] ([Remote / On-site / Hybrid])\n💰 *Compensation:* [Compensation details or Not Specified]\n⏳ *Deadline / Urgency:* [Deadline date or Apply ASAP]\n💻 *Key Tech Stack:* [Comma-separated technologies]\n🌐 *Source:* {{ $json.source }}\n\n📝 *Description & Learning Scope:*\n• [Detailed bullet point on the project scope]\n• [Technical duties and daily development tasks]\n• [Deliverables, mentorship, and learning outcomes]\n\n🔗 [👉 Click Here to View & Apply]({{ $json.url }})\n\n---\nINPUT DATA TO ANALYZE:\n- Job Title / Headline: {{ $json.title }}\n- Company: {{ $json.company }}\n- Location: {{ $json.location }}\n- Posted Date: {{ $json.pubDate }}\n- Salary Data: {{ $json.salary }}\n- Raw Description:\n{{ $json.description }}\n",
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
-        780,
-        120
+        820,
+        180
       ],
       "id": "cee73236-6a09-4ee7-927a-794626bcf55c",
       "name": "Basic LLM Chain"
@@ -76,8 +116,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
       "position": [
-        832,
-        340
+        860,
+        400
       ],
       "id": "cfb2199f-25ff-4686-9b3c-6be9cf92117f",
       "name": "Google Gemini Chat Model"
@@ -93,8 +133,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1080,
-        120
+        1100,
+        180
       ],
       "id": "98ec951c-56bd-4f79-b131-44bc61f57583",
       "name": "Send Telegram Alert"
@@ -113,6 +153,16 @@
             "node": "Fetch Jobicy Global Internships",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Fetch Telegram - Afriwork (ET)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Telegram - GetJobs (ET)",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -129,6 +179,28 @@
       ]
     },
     "Fetch Jobicy Global Internships": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Filter Tech Internships",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Telegram - Afriwork (ET)": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Filter Tech Internships",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Telegram - GetJobs (ET)": {
       "main": [
         [
           {
