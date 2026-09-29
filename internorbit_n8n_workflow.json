@@ -211,7 +211,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=SYSTEM ROLE: You are an expert AI technical recruiter specializing strictly in SOFTWARE ENGINEERING STUDENT INTERNSHIPS.\n\nCRITICAL CONSTRAINTS:\n1. NO EMOJIS: Do NOT output any emojis whatsoever (no icons, no symbols). Use only clean plain text and standard hyphens.\n2. CONCISE & TIGHT: Keep the description very short and clear (maximum 2 compact bullet points). Students want to quickly scan and apply on the source website.\n3. STRICTLY STUDENT INTERNSHIPS: This is exclusively for currently enrolled university/college students or trainees. Discard senior or post-graduate positions.\n\nOUTPUT FORMAT (STRICT PLAIN TEXT, NO EMOJIS):\nNEW STUDENT INTERNSHIP: [Job Title]\n\nCompany: [Company Name]\nLocation: [Location] ([Remote / On-site / Hybrid])\nCompensation: [Pay details or Not Specified]\nDeadline: [Deadline date or Apply ASAP]\nKey Tech Stack: [Comma-separated technologies]\nSource: {{ $json.source }}\n\nSummary:\n- [First punchy bullet point on core intern scope]\n- [Second punchy bullet point on key learning outcome]\n\nApply: [Click Here to View & Apply]({{ $json.url }})\n\n---\nRAW JOB DATA:\n- Title: {{ $json.title }}\n- Company: {{ $json.company }}\n- Location: {{ $json.location }}\n- Date: {{ $json.pubDate }}\n- Salary: {{ $json.salary }}\n- Description: {{ $json.description }}\n",
+        "text": "=SYSTEM ROLE: You are an expert AI technical recruiter specializing strictly in SOFTWARE ENGINEERING & TECH STUDENT INTERNSHIPS.\n\nCRITICAL INSTRUCTIONS:\n1. NO EMOJIS: Do NOT output any emojis whatsoever (no icons, symbols, or flags). Use only clean plain text and standard hyphens.\n2. CONCISE & TIGHT: Keep the description very short and clear (maximum 2 compact bullet points). Students want to quickly scan and apply.\n3. BILINGUAL UNDERSTANDING: If the raw job description is in Amharic (Ethiopian source), translate and summarize key requirements into clear, professional English.\n4. STRICTLY STUDENT INTERNSHIPS: This is exclusively for currently enrolled university/college students or recent trainees. Filter out senior requirements.\n\nOUTPUT FORMAT (STRICT TELEGRAM MARKDOWN, NO EMOJIS):\n*NEW STUDENT INTERNSHIP:* [Job Title]\n\n*Company:* [Company Name]\n*Location:* [Location] ([Remote / On-site / Hybrid])\n*Compensation:* [Pay details or Not Specified]\n*Deadline:* [Deadline date or Apply ASAP]\n*Key Tech Stack:* [Comma-separated technologies]\n*Source:* {{ $json.source }}\n\n*Summary:*\n- [First punchy bullet point on core intern scope and responsibilities]\n- [Second punchy bullet point on tech stack or learning outcomes]\n\n*Apply:* [Click Here to View & Apply]({{ $json.url }})\n\n---\nRAW JOB DATA:\n- Title: {{ $json.title }}\n- Company: {{ $json.company }}\n- Location: {{ $json.location }}\n- Date: {{ $json.pubDate }}\n- Salary: {{ $json.salary }}\n- Source: {{ $json.source }}\n- URL: {{ $json.url }}\n- Description: {{ $json.description }}\n",
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
@@ -225,8 +225,10 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-3.1-flash-lite",
-        "options": {}
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.2
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.1,
