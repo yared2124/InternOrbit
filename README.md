@@ -39,24 +39,29 @@ InternOrbit is an intelligent, production-grade automation agent built with **n8
 ## 🏗️ Architecture Pipeline
 
 ```mermaid
-graph TD
-    Trigger["⚡ Schedule (Every 4h) / Manual Trigger"] --> S1["🌍 RemoteOK API"]
-    Trigger --> S2["🌐 Jobicy Global Tech API"]
-    Trigger --> S3["🇪🇹 Afriwork (Telegram)"]
-    Trigger --> S4["🇪🇹 GetJobs (Telegram)"]
-    Trigger --> S5["🇪🇹 Freelance Ethio (Telegram)"]
-    
-    S1 --> Dedupe["🛡️ Normalizer & Deduplication Engine (Code)"]
-    S2 --> Dedupe
-    S3 --> Dedupe
-    S4 --> Dedupe
-    S5 --> Dedupe
-    
-    Dedupe --> LLM["🧠 LLM Chain (Gemini 2.5 Flash)"]
-    LLM --> Telegram["📲 Telegram Broadcast (Inline Apply Buttons)"]
-    
-    Student["🎓 Student Types /start"] --> SaveSheet["📝 Save Subscriber (Google Sheets)"]
-    SaveSheet --> Welcome["💬 Send Welcome Message"]
+flowchart TD
+    subgraph Sources [Data Sources]
+        Trigger["Schedule Trigger: Every 4 Hours"] --> S1["RemoteOK API"]
+        Trigger --> S2["Jobicy Global Tech API"]
+        Trigger --> S3["Telegram: Afriwork"]
+        Trigger --> S4["Telegram: GetJobs"]
+        Trigger --> S5["Telegram: Freelance Ethio"]
+    end
+
+    subgraph Pipeline [Core Automation Pipeline]
+        S1 --> Dedupe["Normalizer & Deduplication Engine"]
+        S2 --> Dedupe
+        S3 --> Dedupe
+        S4 --> Dedupe
+        S5 --> Dedupe
+        Dedupe --> LLM["LLM Chain: Google Gemini 2.5 Flash"]
+    end
+
+    subgraph Distribution [Delivery & Onboarding]
+        LLM --> Telegram["Telegram Broadcast Channel"]
+        Student["Student Command: /start"] --> SaveSheet["Save Subscriber: Google Sheets"]
+        SaveSheet --> Welcome["Send Welcome Notification"]
+    end
 ```
 
 ---
