@@ -35,7 +35,20 @@
     {
       "parameters": {
         "url": "https://remoteok.com/api?tag=internship",
-        "options": {}
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            }
+          ]
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
@@ -44,12 +57,27 @@
         -100
       ],
       "id": "08696ca8-395d-4cc8-bcde-9e824c4d39ff",
-      "name": "Fetch RemoteOK Internships"
+      "name": "Fetch RemoteOK Internships",
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "url": "https://jobicy.com/api/v2/remote-jobs?count=20&tag=internship",
-        "options": {}
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            }
+          ]
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
@@ -58,7 +86,9 @@
         40
       ],
       "id": "jobicy-fetch-node",
-      "name": "Fetch Jobicy Global Internships"
+      "name": "Fetch Jobicy Global Internships",
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -69,6 +99,19 @@
               "responseFormat": "text"
             }
           }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            }
+          ]
         }
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -78,7 +121,9 @@
         180
       ],
       "id": "ethiopia-afriwork-node",
-      "name": "Fetch Telegram - Afriwork (ET)"
+      "name": "Fetch Telegram - Afriwork (ET)",
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -89,6 +134,19 @@
               "responseFormat": "text"
             }
           }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            }
+          ]
         }
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -98,7 +156,9 @@
         320
       ],
       "id": "ethiopia-getjobs-node",
-      "name": "Fetch Telegram - GetJobs (ET)"
+      "name": "Fetch Telegram - GetJobs (ET)",
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -109,6 +169,19 @@
               "responseFormat": "text"
             }
           }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            }
+          ]
         }
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -118,11 +191,13 @@
         460
       ],
       "id": "ethiopia-freelance-node",
-      "name": "Fetch Telegram - FreelanceEthio (ET)"
+      "name": "Fetch Telegram - FreelanceEthio (ET)",
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\n// PERSISTENT DEDUPLICATION ENGINE: Retains seen job identifiers across scheduled executions\nconst staticData = $getWorkflowStaticData('global');\nstaticData.seenJobKeys = staticData.seenJobKeys || [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech',\n  'ሶፍትዌር', 'ዴቨሎፐር', 'ኮምፒውተር', 'አይቲ', 'ዌብሳይት', 'ኢንፎርሜሽን ቴክኖሎጂ'\n];\n\n// STRICT EXCLUSIONS: Exclude non-tech, seniors, and graduate-only roles\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist', 'driver', 'ፎርማን', 'ሹፌር', 'ሂሳብ ሹም',\n  'senior', 'lead', 'principal', 'manager', 'director', 'phd', 'graduate program', 'experienced'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // 1. Jobicy Global API\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 800),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK API\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 800),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n  // 3. Ethiopian Telegram Channels\n  else if (json.data && typeof json.data === 'string' && json.data.includes('tgme_widget_message_text')) {\n    const html = json.data;\n    const postBlockRegex = /<div class=\"tgme_widget_message\\s[^\"]*\"[^>]*data-post=\"([^\"]+)\"[\\s\\S]*?<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n    let match;\n    let foundPosts = 0;\n    while ((match = postBlockRegex.exec(html)) !== null) {\n      foundPosts++;\n      const postSlug = match[1];\n      const rawText = match[2].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n      const directUrl = postSlug ? `https://t.me/${postSlug}` : 'https://t.me/afriworkamharic';\n      \n      if (rawText.length > 40) {\n        normalizedJobs.push({\n          title: rawText.slice(0, 70),\n          company: 'Ethiopian Tech Employer',\n          location: 'Ethiopia (Addis Ababa / Remote)',\n          url: directUrl,\n          description: rawText.slice(0, 800),\n          pubDate: 'Recently posted',\n          salary: 'See description (ETB)',\n          source: 'Ethiopia Telegram'\n        });\n      }\n    }\n    if (foundPosts === 0) {\n      const fallbackRegex = /<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n      let fbMatch;\n      while ((fbMatch = fallbackRegex.exec(html)) !== null) {\n        const raw = fbMatch[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n        if (raw.length > 40) {\n          normalizedJobs.push({\n            title: raw.slice(0, 70),\n            company: 'Ethiopian Tech Employer',\n            location: 'Ethiopia (Addis Ababa / Remote)',\n            url: 'https://t.me/afriworkamharic',\n            description: raw.slice(0, 800),\n            pubDate: 'Recently posted',\n            salary: 'See description (ETB)',\n            source: 'Ethiopia Telegram'\n          });\n        }\n      }\n    }\n  }\n}\n\n// 1. FILTER: Strict student tech internship criteria\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ') + ' ' + desc;\n\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n  const isTech = techKeywords.some(kw => allText.includes(kw.toLowerCase()));\n  const isStudentIntern = title.includes('intern') || \n                          title.includes('student') || \n                          title.includes('trainee') || \n                          desc.includes('internship') ||\n                          desc.includes('student') ||\n                          desc.includes('ተማሪ') ||\n                          desc.includes('ኢንተርን') ||\n                          (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && isStudentIntern;\n});\n\n// 2. DEDUPLICATION ENGINE: Filter duplicates in current execution AND against historic runs\nconst seenInCurrentRun = new Set();\nconst freshJobs = [];\n\nfor (const job of filtered) {\n  const cleanUrl = (job.url || '').trim().toLowerCase();\n  const cleanTitle = (job.title || '').trim().toLowerCase().slice(0, 40);\n  const dedupeKey = cleanUrl || cleanTitle;\n  \n  if (!dedupeKey) continue;\n  if (seenInCurrentRun.has(dedupeKey)) continue;\n  seenInCurrentRun.add(dedupeKey);\n\n  // Check persistent memory across scheduled runs\n  if (staticData.seenJobKeys.includes(dedupeKey)) {\n    continue;\n  }\n\n  freshJobs.push(job);\n}\n\n// Take up to 3 fresh new jobs per scheduled cycle\nconst selectedJobs = freshJobs.slice(0, 3);\n\n// Record newly published jobs in static memory\nfor (const job of selectedJobs) {\n  const key = ((job.url || '').trim().toLowerCase()) || ((job.title || '').trim().toLowerCase().slice(0, 40));\n  staticData.seenJobKeys.push(key);\n}\n\n// Limit memory size to 500 keys to keep workflow lightweight\nif (staticData.seenJobKeys.length > 500) {\n  staticData.seenJobKeys = staticData.seenJobKeys.slice(-400);\n}\n\nreturn selectedJobs.map(j => ({ json: j }));\n"
+        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\n// PERSISTENT DEDUPLICATION ENGINE: Retains seen job identifiers across scheduled executions\nconst staticData = $getWorkflowStaticData('global');\nstaticData.seenJobKeys = staticData.seenJobKeys || [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech',\n  'ሶፍትዌር', 'ዴቨሎፐር', 'ኮምፒውተር', 'አይቲ', 'ዌብሳይት', 'ኢንፎርሜሽን ቴክኖሎጂ'\n];\n\n// STRICT EXCLUSIONS: Exclude non-tech, seniors, and graduate-only roles\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist', 'driver', 'ፎርማን', 'ሹፌር', 'ሂሳብ ሹም',\n  'senior', 'lead', 'principal', 'manager', 'director', 'phd', 'graduate program', 'experienced'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // Guard against failed HTTP requests (continueOnFail resilience)\n  if (!json || json.error) {\n    continue;\n  }\n  \n  // 1. Jobicy Global API\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 800),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK API\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 800),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n  // 3. Ethiopian Telegram Channels (Afriwork, GetJobs, Freelance Ethio)\n  else if (json.data && typeof json.data === 'string' && json.data.includes('tgme_widget_message_text')) {\n    const html = json.data;\n    \n    // Identify channel source\n    let channelSource = 'Telegram (Ethiopia)';\n    let channelDefaultUrl = 'https://t.me/afriworkamharic';\n    if (html.includes('getjobss')) {\n      channelSource = 'GetJobs (ET Telegram)';\n      channelDefaultUrl = 'https://t.me/getjobss';\n    } else if (html.includes('freelance_ethio')) {\n      channelSource = 'Freelance Ethio (ET Telegram)';\n      channelDefaultUrl = 'https://t.me/freelance_ethio';\n    } else if (html.includes('afriworkamharic')) {\n      channelSource = 'Afriwork (ET Telegram)';\n      channelDefaultUrl = 'https://t.me/afriworkamharic';\n    }\n\n    const postBlockRegex = /<div class=\"tgme_widget_message\\s[^\"]*\"[^>]*data-post=\"([^\"]+)\"[\\s\\S]*?<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n    let match;\n    let foundPosts = 0;\n    while ((match = postBlockRegex.exec(html)) !== null) {\n      foundPosts++;\n      const postSlug = match[1];\n      const rawText = match[2].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n      const directUrl = postSlug ? `https://t.me/${postSlug}` : channelDefaultUrl;\n      \n      if (rawText.length > 40) {\n        normalizedJobs.push({\n          title: rawText.slice(0, 70),\n          company: 'Ethiopian Tech Employer',\n          location: 'Ethiopia (Addis Ababa / Hybrid)',\n          url: directUrl,\n          description: rawText.slice(0, 800),\n          pubDate: 'Recently posted',\n          salary: 'See description (ETB)',\n          source: channelSource\n        });\n      }\n    }\n    if (foundPosts === 0) {\n      const fallbackRegex = /<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n      let fbMatch;\n      while ((fbMatch = fallbackRegex.exec(html)) !== null) {\n        const raw = fbMatch[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n        if (raw.length > 40) {\n          normalizedJobs.push({\n            title: raw.slice(0, 70),\n            company: 'Ethiopian Tech Employer',\n            location: 'Ethiopia (Addis Ababa / Hybrid)',\n            url: channelDefaultUrl,\n            description: raw.slice(0, 800),\n            pubDate: 'Recently posted',\n            salary: 'See description (ETB)',\n            source: channelSource\n          });\n        }\n      }\n    }\n  }\n}\n\n// 1. FILTER: Strict student tech internship criteria\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ') + ' ' + desc;\n\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n  const isTech = techKeywords.some(kw => allText.includes(kw.toLowerCase()));\n  const isStudentIntern = title.includes('intern') || \n                          title.includes('student') || \n                          title.includes('trainee') || \n                          desc.includes('internship') ||\n                          desc.includes('student') ||\n                          desc.includes('ተማሪ') ||\n                          desc.includes('ኢንተርን') ||\n                          (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && isStudentIntern;\n});\n\n// 2. DEDUPLICATION ENGINE: Filter duplicates in current execution AND against historic runs\nconst seenInCurrentRun = new Set();\nconst freshJobs = [];\n\nfor (const job of filtered) {\n  const cleanUrl = (job.url || '').trim().toLowerCase();\n  const cleanTitle = (job.title || '').trim().toLowerCase().slice(0, 40);\n  const dedupeKey = cleanUrl || cleanTitle;\n  \n  if (!dedupeKey) continue;\n  if (seenInCurrentRun.has(dedupeKey)) continue;\n  seenInCurrentRun.add(dedupeKey);\n\n  // Check persistent memory across scheduled runs\n  if (staticData.seenJobKeys.includes(dedupeKey)) {\n    continue;\n  }\n\n  freshJobs.push(job);\n}\n\n// Take up to 3 fresh new jobs per scheduled cycle\nconst selectedJobs = freshJobs.slice(0, 3);\n\n// Record newly published jobs in static memory\nfor (const job of selectedJobs) {\n  const key = ((job.url || '').trim().toLowerCase()) || ((job.title || '').trim().toLowerCase().slice(0, 40));\n  staticData.seenJobKeys.push(key);\n}\n\n// Limit memory size to 500 keys to keep workflow lightweight\nif (staticData.seenJobKeys.length > 500) {\n  staticData.seenJobKeys = staticData.seenJobKeys.slice(-400);\n}\n\nreturn selectedJobs.map(j => ({ json: j }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
