@@ -273,7 +273,9 @@
         640
       ],
       "id": "sheets-save-subscriber",
-      "name": "Save Student Subscriber"
+      "name": "Save Student Subscriber",
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -295,7 +297,7 @@
     {
       "parameters": {
         "chatId": "={{ $json.message.chat.id }}",
-        "text": "=Welcome to InternOrbit, {{ $json.message.chat.first_name }}!\n\nYou are now subscribed to automated Tech & Software Engineering student internship alerts.\n\nYou will receive newly detected internships from Ethiopia and Global remote sources directly in this chat as soon as they are published.",
+        "text": "=Welcome to InternOrbit, {{ $json.message.chat.first_name }}!\n\nYou are connected to InternOrbit — your automated radar for Software Engineering & Tech Student Internships.\n\nWhat you get:\n- Curated Ethiopian tech internships (Afriwork, GetJobs, domestic tech)\n- Verified Global Remote student internships (Jobicy, RemoteOK, Europe/US remote)\n- Direct 1-click apply links and deadlines\n\nAlerts are published regularly every 4 hours.",
         "additionalFields": {
           "parse_mode": "Markdown"
         }
@@ -311,10 +313,24 @@
     },
     {
       "parameters": {
-        "chatId": "7220676785",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID || '7220676785' }}",
         "text": "={{ $json.text }}",
         "additionalFields": {
-          "parse_mode": "Markdown"
+          "parse_mode": "Markdown",
+          "reply_markup": {
+            "inline_keyboard": [
+              [
+                {
+                  "text": "Apply Now",
+                  "url": "={{ $('Strict Student Filter & Deduplication Engine').item.json.url }}"
+                },
+                {
+                  "text": "Share Alert",
+                  "url": "={{ 'https://t.me/share/url?url=' + encodeURIComponent($('Strict Student Filter & Deduplication Engine').item.json.url) + '&text=' + encodeURIComponent('Check out this Tech Student Internship via InternOrbit!') }}"
+                }
+              ]
+            ]
+          }
         }
       },
       "type": "n8n-nodes-base.telegram",
