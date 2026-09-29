@@ -122,7 +122,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech',\n  'ሶፍትዌር', 'ዴቨሎፐር', 'ኮምፒውተር', 'አይቲ', 'ዌብሳይት', 'ኢንፎርሜሽን ቴክኖሎጂ'\n];\n\n// STRICT EXCLUSIONS: Exclude non-tech, seniors, and graduate-only roles\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist', 'driver', 'ፎርማን', 'ሹፌር', 'ሂሳብ ሹም',\n  'senior', 'lead', 'principal', 'manager', 'director', 'phd', 'graduate program', 'experienced'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // 1. Jobicy Global API\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 800),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK API\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 800),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n  // 3. Ethiopian Telegram Channels\n  else if (json.data && typeof json.data === 'string' && json.data.includes('tgme_widget_message_text')) {\n    const html = json.data;\n    const regex = /<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n    let match;\n    while ((match = regex.exec(html)) !== null) {\n      const raw = match[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n      if (raw.length > 40) {\n        normalizedJobs.push({\n          title: raw.slice(0, 60),\n          company: 'Ethiopian Employer',\n          location: 'Ethiopia (Addis Ababa)',\n          url: 'https://t.me/afriworkamharic',\n          description: raw.slice(0, 800),\n          pubDate: 'Recently posted',\n          salary: 'See description (ETB)',\n          source: 'Ethiopia Telegram'\n        });\n      }\n    }\n  }\n}\n\n// STRICT STUDENT INTERNSHIP FILTER\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ') + ' ' + desc;\n\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n  const isTech = techKeywords.some(kw => allText.includes(kw.toLowerCase()));\n  const isStudentIntern = title.includes('intern') || \n                          title.includes('student') || \n                          title.includes('trainee') || \n                          desc.includes('internship') ||\n                          desc.includes('student') ||\n                          desc.includes('ተማሪ') ||\n                          desc.includes('ኢንተርን') ||\n                          (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && isStudentIntern;\n});\n\nreturn filtered.slice(0, 3).map(j => ({ json: j }));\n"
+        "jsCode": "const items = $input.all();\nconst normalizedJobs = [];\n\n// PERSISTENT DEDUPLICATION ENGINE: Retains seen job identifiers across scheduled executions\nconst staticData = $getWorkflowStaticData('global');\nstaticData.seenJobKeys = staticData.seenJobKeys || [];\n\nconst techKeywords = [\n  'software', 'developer', 'engineer', 'frontend', 'backend', 'fullstack',\n  'web', 'mobile', 'android', 'ios', 'flutter', 'react', 'python',\n  'javascript', 'typescript', 'node', 'java', 'golang', 'c++', 'c#',\n  'data', 'ai', 'machine learning', 'cloud', 'devops', 'qa', 'tech',\n  'ሶፍትዌር', 'ዴቨሎፐር', 'ኮምፒውተር', 'አይቲ', 'ዌብሳይት', 'ኢንፎርሜሽን ቴክኖሎጂ'\n];\n\n// STRICT EXCLUSIONS: Exclude non-tech, seniors, and graduate-only roles\nconst excludeKeywords = [\n  'human resources', 'recruiter', 'care navigator', 'nurse', 'medical', \n  'sales representative', 'customer service', 'receptionist', 'driver', 'ፎርማን', 'ሹፌር', 'ሂሳብ ሹም',\n  'senior', 'lead', 'principal', 'manager', 'director', 'phd', 'graduate program', 'experienced'\n];\n\nfor (const item of items) {\n  const json = item.json;\n  \n  // 1. Jobicy Global API\n  if (json.jobs && Array.isArray(json.jobs)) {\n    for (const job of json.jobs) {\n      normalizedJobs.push({\n        title: job.jobTitle,\n        company: job.companyName,\n        location: job.jobGeo || 'Remote Worldwide',\n        url: job.url,\n        description: (job.jobDescription || job.jobExcerpt || '').replace(/<[^>]*>/g, '').slice(0, 800),\n        pubDate: job.pubDate || 'Recently posted',\n        salary: (job.salaryMin && job.salaryMax) ? `${job.salaryCurrency || '$'}${job.salaryMin} - ${job.salaryMax}` : 'Not Specified',\n        source: 'Jobicy Global'\n      });\n    }\n  } \n  // 2. RemoteOK API\n  else if (json.position) {\n    normalizedJobs.push({\n      title: json.position,\n      company: json.company,\n      location: json.location || 'Remote',\n      url: json.apply_url || json.url,\n      description: (json.description || '').replace(/<[^>]*>/g, '').slice(0, 800),\n      pubDate: json.date ? json.date.split('T')[0] : 'Recently posted',\n      salary: (json.salary_min && json.salary_max) ? `$${json.salary_min} - $${json.salary_max}` : 'Not Specified',\n      source: 'RemoteOK',\n      tags: json.tags || []\n    });\n  }\n  // 3. Ethiopian Telegram Channels\n  else if (json.data && typeof json.data === 'string' && json.data.includes('tgme_widget_message_text')) {\n    const html = json.data;\n    const postBlockRegex = /<div class=\"tgme_widget_message\\s[^\"]*\"[^>]*data-post=\"([^\"]+)\"[\\s\\S]*?<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n    let match;\n    let foundPosts = 0;\n    while ((match = postBlockRegex.exec(html)) !== null) {\n      foundPosts++;\n      const postSlug = match[1];\n      const rawText = match[2].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n      const directUrl = postSlug ? `https://t.me/${postSlug}` : 'https://t.me/afriworkamharic';\n      \n      if (rawText.length > 40) {\n        normalizedJobs.push({\n          title: rawText.slice(0, 70),\n          company: 'Ethiopian Tech Employer',\n          location: 'Ethiopia (Addis Ababa / Remote)',\n          url: directUrl,\n          description: rawText.slice(0, 800),\n          pubDate: 'Recently posted',\n          salary: 'See description (ETB)',\n          source: 'Ethiopia Telegram'\n        });\n      }\n    }\n    if (foundPosts === 0) {\n      const fallbackRegex = /<div class=\"tgme_widget_message_text[^>]*>([\\s\\S]*?)<\\/div>/g;\n      let fbMatch;\n      while ((fbMatch = fallbackRegex.exec(html)) !== null) {\n        const raw = fbMatch[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();\n        if (raw.length > 40) {\n          normalizedJobs.push({\n            title: raw.slice(0, 70),\n            company: 'Ethiopian Tech Employer',\n            location: 'Ethiopia (Addis Ababa / Remote)',\n            url: 'https://t.me/afriworkamharic',\n            description: raw.slice(0, 800),\n            pubDate: 'Recently posted',\n            salary: 'See description (ETB)',\n            source: 'Ethiopia Telegram'\n          });\n        }\n      }\n    }\n  }\n}\n\n// 1. FILTER: Strict student tech internship criteria\nconst filtered = normalizedJobs.filter(job => {\n  const title = (job.title || '').toLowerCase();\n  const desc = (job.description || '').toLowerCase();\n  const allText = title + ' ' + (job.tags || []).join(' ') + ' ' + desc;\n\n  if (excludeKeywords.some(ex => title.includes(ex))) return false;\n  const isTech = techKeywords.some(kw => allText.includes(kw.toLowerCase()));\n  const isStudentIntern = title.includes('intern') || \n                          title.includes('student') || \n                          title.includes('trainee') || \n                          desc.includes('internship') ||\n                          desc.includes('student') ||\n                          desc.includes('ተማሪ') ||\n                          desc.includes('ኢንተርን') ||\n                          (job.tags && (job.tags.includes('internship') || job.tags.includes('intern')));\n\n  return isTech && isStudentIntern;\n});\n\n// 2. DEDUPLICATION ENGINE: Filter duplicates in current execution AND against historic runs\nconst seenInCurrentRun = new Set();\nconst freshJobs = [];\n\nfor (const job of filtered) {\n  const cleanUrl = (job.url || '').trim().toLowerCase();\n  const cleanTitle = (job.title || '').trim().toLowerCase().slice(0, 40);\n  const dedupeKey = cleanUrl || cleanTitle;\n  \n  if (!dedupeKey) continue;\n  if (seenInCurrentRun.has(dedupeKey)) continue;\n  seenInCurrentRun.add(dedupeKey);\n\n  // Check persistent memory across scheduled runs\n  if (staticData.seenJobKeys.includes(dedupeKey)) {\n    continue;\n  }\n\n  freshJobs.push(job);\n}\n\n// Take up to 3 fresh new jobs per scheduled cycle\nconst selectedJobs = freshJobs.slice(0, 3);\n\n// Record newly published jobs in static memory\nfor (const job of selectedJobs) {\n  const key = ((job.url || '').trim().toLowerCase()) || ((job.title || '').trim().toLowerCase().slice(0, 40));\n  staticData.seenJobKeys.push(key);\n}\n\n// Limit memory size to 500 keys to keep workflow lightweight\nif (staticData.seenJobKeys.length > 500) {\n  staticData.seenJobKeys = staticData.seenJobKeys.slice(-400);\n}\n\nreturn selectedJobs.map(j => ({ json: j }));\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -131,7 +131,7 @@
         140
       ],
       "id": "0a01c2b8-906c-4262-8fa0-a2b7e35e655c",
-      "name": "Strict Student Internships Filter"
+      "name": "Strict Student Filter & Deduplication Engine"
     },
     {
       "parameters": {
@@ -317,7 +317,7 @@
       "main": [
         [
           {
-            "node": "Strict Student Internships Filter",
+            "node": "Strict Student Filter & Deduplication Engine",
             "type": "main",
             "index": 0
           }
@@ -328,7 +328,7 @@
       "main": [
         [
           {
-            "node": "Strict Student Internships Filter",
+            "node": "Strict Student Filter & Deduplication Engine",
             "type": "main",
             "index": 0
           }
@@ -339,7 +339,7 @@
       "main": [
         [
           {
-            "node": "Strict Student Internships Filter",
+            "node": "Strict Student Filter & Deduplication Engine",
             "type": "main",
             "index": 0
           }
@@ -350,7 +350,7 @@
       "main": [
         [
           {
-            "node": "Strict Student Internships Filter",
+            "node": "Strict Student Filter & Deduplication Engine",
             "type": "main",
             "index": 0
           }
@@ -361,18 +361,7 @@
       "main": [
         [
           {
-            "node": "Strict Student Internships Filter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Strict Student Internships Filter": {
-      "main": [
-        [
-          {
-            "node": "Basic LLM Chain",
+            "node": "Strict Student Filter & Deduplication Engine",
             "type": "main",
             "index": 0
           }
@@ -417,6 +406,17 @@
         [
           {
             "node": "Send Welcome Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strict Student Filter & Deduplication Engine": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
             "type": "main",
             "index": 0
           }
