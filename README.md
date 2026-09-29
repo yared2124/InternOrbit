@@ -1,6 +1,11 @@
 # InternOrbit 🛰️
 > **Automated Multi-Source AI Tech Internship Radar for Software Engineering Students**
 
+[![InternOrbit CI](https://github.com/yared2124/InternOrbit/actions/workflows/ci.yml/badge.svg)](https://github.com/yared2124/InternOrbit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![n8n](https://img.shields.io/badge/n8n-Workflow-EA4B71.svg)](https://n8n.io)
+[![Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-8E75B2.svg)](https://aistudio.google.com)
+
 InternOrbit is an intelligent, production-grade automation agent built with **n8n** and **Generative AI (Google Gemini 2.5 Flash)**. It continuously monitors, aggregates, filters, deduplicates, and broadcasts student tech internships from verified global remote APIs and local Ethiopian channels directly to Telegram with interactive 1-click apply buttons.
 
 ---
@@ -56,6 +61,21 @@ graph TD
 
 ---
 
+## 🧪 Automated Testing & CI/CD Pipeline
+
+InternOrbit includes an automated quality assurance suite that executes on every push and runs daily at 06:00 UTC:
+
+```bash
+# Run local pipeline validation and API health checks
+python3 tests/validate_pipeline.py
+```
+
+The CI checks:
+1. Complete JSON structural validity and node integrity of `internorbit_n8n_workflow.json`.
+2. Live ping and response validation against RemoteOK and Jobicy Global APIs.
+
+---
+
 ## 🚀 How to Run in n8n Cloud / Self-Hosted
 
 ### 1. Import the Workflow
@@ -80,6 +100,8 @@ graph TD
 
 ```text
 InternOrbit/
+├── .github/workflows/ci.yml       # GitHub Actions CI pipeline & daily health check
+├── tests/validate_pipeline.py     # Automated test suite for workflow schema & APIs
 ├── internorbit_n8n_workflow.json  # Production n8n workflow with dedup & multi-source engine
 ├── docker-compose.yml             # Self-hosted n8n container runner
 ├── .env.example                   # Environment configuration template
